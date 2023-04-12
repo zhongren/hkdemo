@@ -50,12 +50,12 @@ public class TXALHttpUtil {
      * @param <B>
      * @return
      */
-    public static <Q extends BaseDidaReq, B extends BaseDidaResp> B getResult(TxApiEnum txApiEnum, Q param, Class<B> clazz, String token) {
+    public static <Q extends BaseTxAiReq, B extends BaseDidaResp> B getResult(TxApiEnum txApiEnum, Q param, Class<B> clazz, String token) {
         TxAIConfig txAIConfig = initApiConfig();
         return getResult(txAIConfig, txApiEnum, param, clazz, token);
     }
 
-    public static <Q extends BaseDidaReq, B extends BaseDidaResp> B getResult(TxAIConfig txAIConfig, TxApiEnum txApiEnum, Q param, Class<B> clazz, String token) {
+    public static <Q extends BaseTxAiReq, B extends BaseDidaResp> B getResult(TxAIConfig txAIConfig, TxApiEnum txApiEnum, Q param, Class<B> clazz, String token) {
         // 发送请求
         String respStr = null;
         Map<String, Object> signMap = object2TreeMap(param);

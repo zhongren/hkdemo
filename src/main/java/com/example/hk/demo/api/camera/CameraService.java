@@ -1,5 +1,6 @@
 package com.example.hk.demo.api.camera;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -10,11 +11,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class CameraService {
 
-    /**
-     * 拍照
-     */
-    public void takePic(){
-        //MvCameraControl.
+    @Autowired
+    CamaraHelper camaraHelper;
 
+
+    public void takePic(){
+        //拍照
+        camaraHelper.takePicJPEG();
+        //腾讯处理
+        //
     }
 }

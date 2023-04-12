@@ -9,6 +9,7 @@ import okhttp3.*;
 
 import okio.BufferedSink;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
 import java.beans.BeanInfo;
@@ -95,12 +96,15 @@ public class TxAiHttpUtil {
                     sink.writeUtf8(jsonParam);
                 }
             };
-
             Request request = new Request.Builder()
                     .url(url)
                     .post(body)
                     .build();
+
+            StopWatch sw = new StopWatch();
+            sw.start();
             Response response = client.newCall(request).execute();
+            sw.stop();
             String resp=response.body().string();
 
             return resp;

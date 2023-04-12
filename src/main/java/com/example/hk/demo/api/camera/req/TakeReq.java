@@ -1,4 +1,4 @@
-package com.example.hk.demo.camera.req;
+package com.example.hk.demo.api.camera.req;
 
 import lombok.Data;
 

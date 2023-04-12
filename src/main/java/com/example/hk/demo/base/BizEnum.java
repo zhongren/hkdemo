@@ -4,8 +4,10 @@ package com.example.hk.demo.base;
 /**
  * Created by zhongr on 2017/8/25.
  */
-public enum BusinessEnum {
-    SERVICE_ERROR(ResultDto.FAIL, "服务异常");
+public enum BizEnum {
+
+    BIZ_ERROR("-1001", "服务异常"),
+    SERVICE_ERROR(ResultDto.SYS_ERROR, "服务异常");
     private String code;
     private String msg;
 
@@ -25,7 +27,7 @@ public enum BusinessEnum {
         this.msg = msg;
     }
 
-    BusinessEnum(String code, String msg) {
+    BizEnum(String code, String msg) {
         this.code = code;
         this.msg = msg;
     }

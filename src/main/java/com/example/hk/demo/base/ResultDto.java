@@ -22,7 +22,7 @@ public class ResultDto implements Serializable {
     // 通用状态码
     public static String SUCCESS = "1";
     public static String FAIL = "0";
-    public static String NO_AUTH = "-999";
+    public static String SYS_ERROR = "-999";
 
     public static ResultDto build(String status, String msg, Object data) {
         return new ResultDto(status, msg, data);

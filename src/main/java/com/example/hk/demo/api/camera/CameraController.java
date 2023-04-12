@@ -1,10 +1,9 @@
-package com.example.hk.demo.camera;
+package com.example.hk.demo.api.camera;
 
 import com.example.hk.demo.base.ResultDto;
-import com.example.hk.demo.camera.req.TakeReq;
+import com.example.hk.demo.api.camera.req.TakeReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,4 +17,6 @@ public class CameraController {
     public ResultDto take(@RequestBody TakeReq request) {
         return ResultDto.success();
     }
+
+
 }

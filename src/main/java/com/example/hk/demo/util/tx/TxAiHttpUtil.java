@@ -41,7 +41,7 @@ public class TxAiHttpUtil {
         String secret = "";
         String clientId = "";
         String apiUrl = "";
-        return TxAiConfig.builder().signKey(signKey).apiUrl(apiUrl).secret(secret).clientId(clientId).build();
+        return TxAiConfig.builder().apiUrl(apiUrl).build();
     }
 
 
@@ -101,7 +101,9 @@ public class TxAiHttpUtil {
                     .post(body)
                     .build();
             Response response = client.newCall(request).execute();
-            return response.body().string();
+            String resp=response.body().string();
+
+            return resp;
         } catch (Exception e) {
             log.error("tx请求异常! {} {}", e.getMessage(), e);
             throw new BaseException(TxRespCodeEnum.ERROR.getMsg(), String.valueOf(TxRespCodeEnum.ERROR.getCode()));

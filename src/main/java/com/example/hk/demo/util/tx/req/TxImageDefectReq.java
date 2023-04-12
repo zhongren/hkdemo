@@ -34,58 +34,15 @@ public class TxImageDefectReq extends TxAiReq {
     private String poseId;
     @JsonProperty("file_names")
     private List<String> fileNames;
+    @JsonProperty("images_base64")
+    private List<String> imagesBase64;
+
     @JsonProperty("relative_dir")
     private String relativeDir;
+
     @JsonProperty("ext_params")
     private ExtParamsDTO extParams;
 
-    public String getJobId() {
-        return jobId;
-    }
-
-    public void setJobId(String jobId) {
-        this.jobId = jobId;
-    }
-
-    public String getSampleId() {
-        return sampleId;
-    }
-
-    public void setSampleId(String sampleId) {
-        this.sampleId = sampleId;
-    }
-
-    public String getPoseId() {
-        return poseId;
-    }
-
-    public void setPoseId(String poseId) {
-        this.poseId = poseId;
-    }
-
-    public List<String> getFileNames() {
-        return fileNames;
-    }
-
-    public void setFileNames(List<String> fileNames) {
-        this.fileNames = fileNames;
-    }
-
-    public String getRelativeDir() {
-        return relativeDir;
-    }
-
-    public void setRelativeDir(String relativeDir) {
-        this.relativeDir = relativeDir;
-    }
-
-    public ExtParamsDTO getExtParams() {
-        return extParams;
-    }
-
-    public void setExtParams(ExtParamsDTO extParams) {
-        this.extParams = extParams;
-    }
 
     public static class ExtParamsDTO implements Serializable {
         /**

@@ -12,7 +12,4 @@ import lombok.Data;
 @Builder
 public class TxAiConfig {
     private String apiUrl;
-    private String signKey;
-    private String secret;
-    private String clientId;
 }

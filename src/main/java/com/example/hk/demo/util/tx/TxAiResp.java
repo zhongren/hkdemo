@@ -14,7 +14,7 @@ import java.io.Serializable;
  **/
 @Setter
 @Getter
-public class BaseDidaResp implements Serializable {
+public class TxAiResp implements Serializable {
 
     /**
      * 请求失败返回的错误码

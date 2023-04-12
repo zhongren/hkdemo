@@ -10,7 +10,7 @@ import lombok.Data;
  **/
 @Data
 @Builder
-public class TxAIConfig {
+public class TxAiConfig {
     private String apiUrl;
     private String signKey;
     private String secret;

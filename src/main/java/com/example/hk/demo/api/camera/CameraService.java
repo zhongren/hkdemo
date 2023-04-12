@@ -19,6 +19,6 @@ public class CameraService {
         //拍照
         camaraHelper.takePicJPEG();
         //腾讯处理
-        //
+        //Base64.encodeBase64String(bytes);
     }
 }

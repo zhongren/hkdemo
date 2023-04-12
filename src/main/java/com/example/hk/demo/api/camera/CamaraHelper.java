@@ -3,6 +3,7 @@ package com.example.hk.demo.api.camera;
 import MvCameraControlWrapper.CameraControlException;
 import MvCameraControlWrapper.MvCameraControl;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,6 +63,7 @@ public class CamaraHelper {
 
         try {
             // Create directory
+
             File tempFile = new File("dat");
             if (!tempFile.exists()) {
                 tempFile.mkdirs();

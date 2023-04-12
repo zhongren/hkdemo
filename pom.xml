@@ -20,6 +20,7 @@
         <maven.compiler.version>3.8.1</maven.compiler.version>
         <java.source.version>1.8</java.source.version>
         <file.encoding>UTF-8</file.encoding>
+        <skipTests>true</skipTests>
     </properties>
 
     <dependencies>
@@ -67,7 +68,13 @@
             <artifactId>guava</artifactId>
             <version>28.0-jre</version>
         </dependency>
-
+        <dependency>
+            <groupId>MvCameraControl</groupId>
+            <artifactId>MvCameraControl</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/resources/lib/MvCameraControlWrapper.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <build>
@@ -87,6 +94,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <includeSystemScope>true</includeSystemScope>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

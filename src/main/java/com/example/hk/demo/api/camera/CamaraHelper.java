@@ -1,7 +1,10 @@
 package com.example.hk.demo.api.camera;
 
 import MvCameraControlWrapper.CameraControlException;
+import MvCameraControlWrapper.CameraImageCallBack;
 import MvCameraControlWrapper.MvCameraControl;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
@@ -18,29 +21,33 @@ import static MvCameraControlWrapper.MvCameraControlDefines.*;
 /**
  * 摄像头辅助类
  */
+@Slf4j
 @Component
 public class CamaraHelper {
+
+    public static Handle hCamera = null;
+
     private static void printDeviceInfo(MV_CC_DEVICE_INFO stDeviceInfo) {
         if (null == stDeviceInfo) {
-            System.out.println("stDeviceInfo is null");
+            log.info("stDeviceInfo is null");
             return;
         }
 
         if (stDeviceInfo.transportLayerType == MV_GIGE_DEVICE) {
-            System.out.println("\tCurrentIp:       " + stDeviceInfo.gigEInfo.currentIp);
-            System.out.println("\tModel:           " + stDeviceInfo.gigEInfo.modelName);
-            System.out.println("\tUserDefinedName: " + stDeviceInfo.gigEInfo.userDefinedName);
+            log.info("\tCurrentIp:       " + stDeviceInfo.gigEInfo.currentIp);
+            log.info("\tModel:           " + stDeviceInfo.gigEInfo.modelName);
+            log.info("\tUserDefinedName: " + stDeviceInfo.gigEInfo.userDefinedName);
         } else if (stDeviceInfo.transportLayerType == MV_USB_DEVICE) {
-            System.out.println("\tUserDefinedName: " + stDeviceInfo.usb3VInfo.userDefinedName);
-            System.out.println("\tSerial Number:   " + stDeviceInfo.usb3VInfo.serialNumber);
-            System.out.println("\tDevice Number:   " + stDeviceInfo.usb3VInfo.deviceNumber);
+            log.info("\tUserDefinedName: " + stDeviceInfo.usb3VInfo.userDefinedName);
+            log.info("\tSerial Number:   " + stDeviceInfo.usb3VInfo.serialNumber);
+            log.info("\tDevice Number:   " + stDeviceInfo.usb3VInfo.deviceNumber);
         } else {
             System.err.print("Device is not supported! \n");
         }
 
-        System.out.println("\tAccessible:      "
+        log.info("\tAccessible:      "
                 + MvCameraControl.MV_CC_IsDeviceAccessible(stDeviceInfo, MV_ACCESS_Exclusive));
-        System.out.println("");
+        log.info("");
     }
 
     private static void printFrameInfo(MV_FRAME_OUT_INFO stFrameInfo) {
@@ -55,40 +62,13 @@ public class CamaraHelper {
         frameInfo.append("\tHeight[" + stFrameInfo.height + "]");
         frameInfo.append(String.format("\tPixelType[%#x]", stFrameInfo.pixelType.getnValue()));
 
-        System.out.println(frameInfo.toString());
-    }
-
-    public static void saveDataToFile(byte[] dataToSave, int dataSize, String fileName) {
-        OutputStream os = null;
-
-        try {
-            // Create directory
-
-            File tempFile = new File("dat");
-            if (!tempFile.exists()) {
-                tempFile.mkdirs();
-            }
-
-            os = new FileOutputStream(tempFile.getPath() + File.separator + fileName);
-            os.write(dataToSave, 0, dataSize);
-            System.out.println("SaveImage succeed.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            // Close file stream
-            try {
-                os.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        log.info(frameInfo.toString());
     }
 
     public static int chooseCamera(ArrayList<MV_CC_DEVICE_INFO> stDeviceList) {
         if (null == stDeviceList) {
             return -1;
         }
-
         // Choose a device to operate
         int camIndex = -1;
         Scanner scanner = new Scanner(System.in);
@@ -100,7 +80,7 @@ public class CamaraHelper {
                 if ((camIndex >= 0 && camIndex < stDeviceList.size()) || -1 == camIndex) {
                     break;
                 } else {
-                    System.out.println("Input error: " + camIndex);
+                    log.info("Input error: " + camIndex);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -111,48 +91,49 @@ public class CamaraHelper {
         scanner.close();
 
         if (-1 == camIndex) {
-            System.out.println("Bye.");
+            log.info("Bye.");
             return camIndex;
         }
 
         if (0 <= camIndex && stDeviceList.size() > camIndex) {
             if (MV_GIGE_DEVICE == stDeviceList.get(camIndex).transportLayerType) {
-                System.out.println("Connect to camera[" + camIndex + "]: " + stDeviceList.get(camIndex).gigEInfo.userDefinedName);
+                log.info("Connect to camera[" + camIndex + "]: " + stDeviceList.get(camIndex).gigEInfo.userDefinedName);
             } else if (MV_USB_DEVICE == stDeviceList.get(camIndex).transportLayerType) {
-                System.out.println("Connect to camera[" + camIndex + "]: " + stDeviceList.get(camIndex).usb3VInfo.userDefinedName);
+                log.info("Connect to camera[" + camIndex + "]: " + stDeviceList.get(camIndex).usb3VInfo.userDefinedName);
             } else {
-                System.out.println("Device is not supported.");
+                log.info("Device is not supported.");
             }
         } else {
-            System.out.println("Invalid index " + camIndex);
+            log.info("Invalid index " + camIndex);
             camIndex = -1;
         }
 
         return camIndex;
     }
 
-    /**
-     * 拍照jpeg
-     */
+
+
+    @Async("cameraExecutor")
     public void takePicJPEG(){
         int nRet = MV_OK;
         int camIndex = -1;
-        Handle hCamera = null;
-        ArrayList<MV_CC_DEVICE_INFO> stDeviceList;
-
+        ArrayList<MV_CC_DEVICE_INFO> stDeviceList = null;
         do {
-            System.out.println("SDK Version " + MvCameraControl.MV_CC_GetSDKVersion());
+            log.info("SDK Version " + MvCameraControl.MV_CC_GetSDKVersion());
 
-            // Enuerate GigE and USB devices
+            // Enumerate GigE and USB devices
             try {
-                stDeviceList = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE);
+                stDeviceList = MvCameraControl.MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE);
                 if (0 >= stDeviceList.size()) {
-                    System.out.println("No devices found!");
+                    log.info("No devices found!");
                     break;
                 }
                 int i = 0;
                 for (MV_CC_DEVICE_INFO stDeviceInfo : stDeviceList) {
-                    System.out.println("[camera " + (i++) + "]");
+                    if (null == stDeviceInfo) {
+                        continue;
+                    }
+                    log.info("[camera " + (i++) + "]");
                     printDeviceInfo(stDeviceInfo);
                 }
             } catch (CameraControlException e) {
@@ -163,11 +144,11 @@ public class CamaraHelper {
 
             // choose camera
             camIndex = chooseCamera(stDeviceList);
-            if (camIndex == -1) {
+            if (-1 == camIndex) {
                 break;
             }
 
-            // Create handle
+            // Create device handle
             try {
                 hCamera = MvCameraControl.MV_CC_CreateHandle(stDeviceList.get(camIndex));
             } catch (CameraControlException e) {
@@ -177,76 +158,105 @@ public class CamaraHelper {
                 break;
             }
 
-            // Open device
+            // Open selected device
             nRet = MvCameraControl.MV_CC_OpenDevice(hCamera);
             if (MV_OK != nRet) {
                 System.err.printf("Connect to camera failed, errcode: [%#x]\n", nRet);
                 break;
             }
 
-            // Make sure that trigger mode is off
-            nRet = MvCameraControl.MV_CC_SetEnumValueByString(hCamera, "TriggerMode", "Off");
+
+            // set continuous acquisition
+            nRet = MvCameraControl.MV_CC_SetEnumValueByString(hCamera, "AcquisitionMode", "Continuous");
+            if (MV_OK != nRet) {
+                System.err.printf("Set AcquisitionMode to Continous failed, errcode: [%#x]\n", nRet);
+                break;
+            }
+
+            // Turn on trigger mode
+            nRet = MvCameraControl.MV_CC_SetEnumValueByString(hCamera, "TriggerMode", "On");
             if (MV_OK != nRet) {
                 System.err.printf("SetTriggerMode failed, errcode: [%#x]\n", nRet);
                 break;
             }
 
-            // Get payload size
-            MVCC_INTVALUE stParam = new MVCC_INTVALUE();
-            nRet = MvCameraControl.MV_CC_GetIntValue(hCamera, "PayloadSize", stParam);
+            // set trigger source to software
+            nRet = MvCameraControl.MV_CC_SetEnumValueByString(hCamera, "TriggerSource", "Software");
             if (MV_OK != nRet) {
-                System.err.printf("Get PayloadSize fail, errcode: [%#x]\n", nRet);
+                System.err.printf("SetTriggerSource to software failed, errcode: [%#x]\n", nRet);
+                break;
+            }
+
+
+            // Register image callback
+            nRet = MvCameraControl.MV_CC_RegisterImageCallBack(hCamera, new CameraImageCallBack() {
+                @Override
+                public int OnImageCallBack(byte[] bytes, MV_FRAME_OUT_INFO mv_frame_out_info) {
+                    printFrameInfo(mv_frame_out_info);
+                    // Get payload size
+                    MVCC_INTVALUE stParam = new MVCC_INTVALUE();
+                    MvCameraControl.MV_CC_GetIntValue(hCamera, "PayloadSize", stParam);
+
+                    byte[] pData = new byte[(int) stParam.curValue];
+                    MV_FRAME_OUT_INFO stImageInfo = mv_frame_out_info;
+                    int imageLen = stImageInfo.width * stImageInfo.height * 3;    // Every RGB pixel takes 3 bytes
+                    byte[] imageBuffer = new byte[imageLen];
+
+                    // Call MV_CC_SaveImage to save image as JPEG
+                    MV_SAVE_IMAGE_PARAM stSaveParam = new MV_SAVE_IMAGE_PARAM();
+                    stSaveParam.width = stImageInfo.width;                                  // image width
+                    stSaveParam.height = stImageInfo.height;                                // image height
+                    stSaveParam.data = bytes;                                               // image data
+                    stSaveParam.dataLen = stImageInfo.frameLen;                             // image data length
+                    stSaveParam.pixelType = stImageInfo.pixelType;                          // image pixel format
+                    stSaveParam.imageBuffer = imageBuffer;                                  // output image buffer
+                    stSaveParam.imageType = MV_SAVE_IAMGE_TYPE.MV_Image_Jpeg;               // output image pixel format
+                    stSaveParam.methodValue = 0;                                            // Interpolation method that converts Bayer format to RGB24.  0-Neareast 1-double linear 2-Hamilton
+                    stSaveParam.jpgQuality = 60;                                            // JPG endoding quality(50-99]
+
+                    MvCameraControl.MV_CC_SaveImage(hCamera, stSaveParam);
+                    SaveImage.saveDataToFile(imageBuffer, stSaveParam.imageLen, System.currentTimeMillis() + ".jpeg");
+                    return 0;
+                }
+            });
+            if (MV_OK != nRet) {
+                System.err.printf("register image callback failed, errcode: [%#x]\n", nRet);
                 break;
             }
 
             // Start grabbing
             nRet = MvCameraControl.MV_CC_StartGrabbing(hCamera);
             if (MV_OK != nRet) {
-                System.err.printf("Start Grabbing fail, errcode: [%#x]\n", nRet);
+                System.err.printf("StartGrabbing failed, errcode: [%#x]\n", nRet);
                 break;
             }
 
-            // Get one frame
-            MV_FRAME_OUT_INFO stImageInfo = new MV_FRAME_OUT_INFO();
-            byte[] pData = new byte[(int) stParam.curValue];
-            nRet = MvCameraControl.MV_CC_GetOneFrameTimeout(hCamera, pData, stImageInfo, 1000);
+            log.info("Software trigger: ");
+            for (int i = 0; i < 10; i++) {
+                nRet = MvCameraControl.MV_CC_SetCommandValue(hCamera, "TriggerSoftware");
+                if (MV_OK != nRet) {
+                    System.err.printf("Software trigger failed, errcode: [%#x]\n", nRet);
+                }
+
+                try {
+                    Thread.sleep(1 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            // Turn off trigger mode and stop acquisition
+            nRet = MvCameraControl.MV_CC_SetEnumValueByString(hCamera, "TriggerMode", "Off");
             if (MV_OK != nRet) {
-                System.err.printf("GetOneFrameTimeout fail, errcode:[%#x]\n", nRet);
+                System.err.printf("SetTriggerMode failed, errcode: [%#x]\n", nRet);
                 break;
             }
-
-            System.out.println("GetOneFrame: ");
-            printFrameInfo(stImageInfo);
-            int imageLen = stImageInfo.width * stImageInfo.height * 3;    // Every RGB pixel takes 3 bytes
-            byte[] imageBuffer = new byte[imageLen];
-
-            // Call MV_CC_SaveImage to save image as JPEG
-            MV_SAVE_IMAGE_PARAM stSaveParam = new MV_SAVE_IMAGE_PARAM();
-            stSaveParam.width = stImageInfo.width;                                  // image width
-            stSaveParam.height = stImageInfo.height;                                // image height
-            stSaveParam.data = pData;                                               // image data
-            stSaveParam.dataLen = stImageInfo.frameLen;                             // image data length
-            stSaveParam.pixelType = stImageInfo.pixelType;                          // image pixel format
-            stSaveParam.imageBuffer = imageBuffer;                                  // output image buffer
-            stSaveParam.imageType = MV_SAVE_IAMGE_TYPE.MV_Image_Jpeg;               // output image pixel format
-            stSaveParam.methodValue = 0;                                            // Interpolation method that converts Bayer format to RGB24.  0-Neareast 1-double linear 2-Hamilton
-            stSaveParam.jpgQuality = 60;                                            // JPG endoding quality(50-99]
-
-            nRet = MvCameraControl.MV_CC_SaveImage(hCamera, stSaveParam);
-            if (MV_OK != nRet) {
-                System.err.printf("SaveImage fail, errcode: [%#x]\n", nRet);
-                break;
-            }
-
-            // Save buffer content to file
-            saveDataToFile(imageBuffer, stSaveParam.imageLen, "SaveImage.jpeg");
-
-            // Stop grabbing
             nRet = MvCameraControl.MV_CC_StopGrabbing(hCamera);
             if (MV_OK != nRet) {
-                System.err.printf("StopGrabbing fail, errcode: [%#x]\n", nRet);
+                System.err.printf("StopGrabbing failed, errcode: [%#x]\n", nRet);
                 break;
             }
+
         } while (false);
 
         if (null != hCamera) {

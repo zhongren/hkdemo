@@ -42,12 +42,11 @@ public class CamaraHelper {
             log.info("\tSerial Number:   " + stDeviceInfo.usb3VInfo.serialNumber);
             log.info("\tDevice Number:   " + stDeviceInfo.usb3VInfo.deviceNumber);
         } else {
-            System.err.print("Device is not supported! \n");
+            log.error("Device is not supported!");
         }
-
-        log.info("\tAccessible:      "
+        log.info("Accessible:"
                 + MvCameraControl.MV_CC_IsDeviceAccessible(stDeviceInfo, MV_ACCESS_Exclusive));
-        log.info("");
+
     }
 
     private static void printFrameInfo(MV_FRAME_OUT_INFO stFrameInfo) {
@@ -112,11 +111,9 @@ public class CamaraHelper {
     }
 
 
-
     @Async("cameraExecutor")
-    public void takePicJPEG(){
+    public void takePicJPEG(int camIndex) {
         int nRet = MV_OK;
-        int camIndex = -1;
         ArrayList<MV_CC_DEVICE_INFO> stDeviceList = null;
         do {
             log.info("SDK Version " + MvCameraControl.MV_CC_GetSDKVersion());
@@ -128,26 +125,32 @@ public class CamaraHelper {
                     log.info("No devices found!");
                     break;
                 }
-                int i = 0;
-                for (MV_CC_DEVICE_INFO stDeviceInfo : stDeviceList) {
+                for (int i = 0; i < stDeviceList.size(); i++) {
+                    MV_CC_DEVICE_INFO stDeviceInfo = stDeviceList.get(i);
                     if (null == stDeviceInfo) {
                         continue;
                     }
-                    log.info("[camera " + (i++) + "]");
+                    log.info("[camera " + i + "]");
                     printDeviceInfo(stDeviceInfo);
                 }
             } catch (CameraControlException e) {
-                System.err.println("Enumrate devices failed!" + e.toString());
+                log.error("Enumrate devices failed!" + e.toString());
                 e.printStackTrace();
                 break;
             }
 
             // choose camera
-            camIndex = chooseCamera(stDeviceList);
+            //camIndex = chooseCamera(stDeviceList);
             if (-1 == camIndex) {
                 break;
             }
-
+            if (MV_GIGE_DEVICE == stDeviceList.get(camIndex).transportLayerType) {
+                log.info("Connect to camera[" + camIndex + "]: " + stDeviceList.get(camIndex).gigEInfo.userDefinedName);
+            } else if (MV_USB_DEVICE == stDeviceList.get(camIndex).transportLayerType) {
+                log.info("Connect to camera[" + camIndex + "]: " + stDeviceList.get(camIndex).usb3VInfo.userDefinedName);
+            } else {
+                log.info("Device is not supported.");
+            }
             // Create device handle
             try {
                 hCamera = MvCameraControl.MV_CC_CreateHandle(stDeviceList.get(camIndex));

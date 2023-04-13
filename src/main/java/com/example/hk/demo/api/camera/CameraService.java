@@ -15,9 +15,9 @@ public class CameraService {
     CamaraHelper camaraHelper;
 
 
-    public void takePic(){
+    public void takePic(int camIndex){
         //拍照
-        camaraHelper.takePicJPEG();
+        camaraHelper.takePicJPEG(camIndex);
         //腾讯处理
         //Base64.encodeBase64String(bytes);
     }

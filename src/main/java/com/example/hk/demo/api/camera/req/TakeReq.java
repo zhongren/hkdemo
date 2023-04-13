@@ -4,5 +4,6 @@ import lombok.Data;
 
 @Data
 public class TakeReq {
-    private String fileName;
+    //摄像头下标
+    private Integer camIndex;
 }

@@ -30,7 +30,7 @@ public class CameraController {
             e.printStackTrace();
         }
         System.out.println(path);
-        cameraService.takePic();
+        cameraService.takePic(request.getCamIndex());
         return ResultDto.success();
     }
 

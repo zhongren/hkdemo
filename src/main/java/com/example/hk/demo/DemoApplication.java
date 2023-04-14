@@ -12,6 +12,14 @@ public class DemoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
+        // 添加hook thread，重写其run方法
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run() {
+                System.out.println("this is hook demo...");
+
+            }
+        });
     }
 
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -22,7 +23,7 @@ public class CameraController {
 
     @ApiOperation(value = "拍照")
     @PostMapping(value = "camera/take")
-    public ResultDto take(@RequestBody TakeReq request) {
+    public ResultDto take(@RequestBody @Valid TakeReq request) {
         String path = null;
         try {
             path = new File(ResourceUtils.getURL("classpath:").getPath()).getParentFile().getParentFile().getParent();
@@ -30,7 +31,7 @@ public class CameraController {
             e.printStackTrace();
         }
         System.out.println(path);
-        cameraService.takePic(request.getCamIndex());
+        cameraService.takePic(Integer.parseInt(request.getCamIndex()));
         return ResultDto.success();
     }
 

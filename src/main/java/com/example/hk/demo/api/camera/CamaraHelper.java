@@ -64,52 +64,6 @@ public class CamaraHelper {
         log.info(frameInfo.toString());
     }
 
-    public static int chooseCamera(ArrayList<MV_CC_DEVICE_INFO> stDeviceList) {
-        if (null == stDeviceList) {
-            return -1;
-        }
-        // Choose a device to operate
-        int camIndex = -1;
-        Scanner scanner = new Scanner(System.in);
-
-        while (true) {
-            try {
-                System.out.print("Please input camera index (-1 to quit):");
-                camIndex = scanner.nextInt();
-                if ((camIndex >= 0 && camIndex < stDeviceList.size()) || -1 == camIndex) {
-                    break;
-                } else {
-                    log.info("Input error: " + camIndex);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                camIndex = -1;
-                break;
-            }
-        }
-        scanner.close();
-
-        if (-1 == camIndex) {
-            log.info("Bye.");
-            return camIndex;
-        }
-
-        if (0 <= camIndex && stDeviceList.size() > camIndex) {
-            if (MV_GIGE_DEVICE == stDeviceList.get(camIndex).transportLayerType) {
-                log.info("Connect to camera[" + camIndex + "]: " + stDeviceList.get(camIndex).gigEInfo.userDefinedName);
-            } else if (MV_USB_DEVICE == stDeviceList.get(camIndex).transportLayerType) {
-                log.info("Connect to camera[" + camIndex + "]: " + stDeviceList.get(camIndex).usb3VInfo.userDefinedName);
-            } else {
-                log.info("Device is not supported.");
-            }
-        } else {
-            log.info("Invalid index " + camIndex);
-            camIndex = -1;
-        }
-
-        return camIndex;
-    }
-
 
     @Async("cameraExecutor")
     public void takePicJPEG(int camIndex) {
